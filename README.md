@@ -1,6 +1,6 @@
-# Acheron
+# Acheron NG
 
-SKSE64 plugin to alter and expand death in Skyrim by adding various alternative condition to "die" and replace "dying" with custom events.
+SKSE64 plugin to alter and expand death in Skyrim by adding various alternative condition to "die" and replace "dying" with custom events. Now supporting Skyrim VR!
 
 For documentation on how to interact with this plugin see the [wiki](https://github.com/Scrabx3/Acheron-SKSE/wiki).  
 Download mirror on [Nexus Mods](https://www.nexusmods.com/skyrimspecialedition/mods/108159).
