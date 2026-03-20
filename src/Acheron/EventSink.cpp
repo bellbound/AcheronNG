@@ -14,7 +14,7 @@ namespace Acheron
 		auto source = const_cast<RE::Actor*>(a_event->holder->As<RE::Actor>());
 		// constexpr std::array events{ "MTState", "IdleStop", "JumpLandEnd" };
 		if (a_event->tag == "MTState") {
-			if (auto process = source->currentProcess) {
+			if (auto process = source->GetActorRuntimeData().currentProcess) {
 				process->PlayIdle(source, GameForms::BleedoutStart, source);
 			} else {
 				source->NotifyAnimationGraph("BleedoutStart");
@@ -28,7 +28,7 @@ namespace Acheron
 		if (!a_event || !a_event->actor || !a_event->actor->IsPlayerRef())
 			return EventResult::kContinue;
 		// Dont process playing loading game
-		if (!RE::PlayerCharacter::GetSingleton()->playerFlags.isLoading)
+		if (!RE::PlayerCharacter::GetSingleton()->GetPlayerRuntimeData().playerFlags.isLoading)
 			if (RE::UI::GetSingleton()->IsMenuOpen(RE::InterfaceStrings::GetSingleton()->loadingMenu))
 				return EventResult::kContinue;
 		// Dont process loading child/parent locs
@@ -161,7 +161,7 @@ namespace Acheron
 					case RE::INPUT_DEVICE::kKeyboard:
 						device = dmanager->GetKeyboard();
 						break;
-					case RE::INPUT_DEVICE::kVirtualKeyboard:
+					case RE::INPUT_DEVICE::kFlatVirtualKeyboard:
 						device = dmanager->GetVirtualKeyboard();
 						break;
 					default:
@@ -179,22 +179,22 @@ namespace Acheron
 				if (idcode == hpkey) {
 					if (player->HasSpell(GameForms::HunterPride)) {
 						player->RemoveSpell(GameForms::HunterPride);
-						RE::SendHUDMessage::ShowHUDMessage("$Achr_HunterPrideRemoved");
+						RE::DebugNotification("$Achr_HunterPrideRemoved");
 					} else {
 						player->AddSpell(GameForms::HunterPride);
-						RE::SendHUDMessage::ShowHUDMessage("$Achr_HunterPrideAdded");
+						RE::DebugNotification("$Achr_HunterPrideAdded");
 					}
 				} else if (idcode == surkey) {
 					const auto agr = Processing::AggressorInfo(nullptr, player);
 					if (!agr.actor) {
 						logger::info("Failed to find a valid aggressor for Surrender");
-						RE::SendHUDMessage::ShowHUDMessage("$Achr_SurrenderNoAggressor");
+						RE::DebugNotification("$Achr_SurrenderNoAggressor");
 						return EventResult::kContinue;
 					}
 					const auto memberList = Resolution::BuildMemberList(player, agr.actor, Resolution::Type::Surrender);
 					if (!Resolution::SelectQuest(Resolution::Type::Surrender, player, memberList, player->IsInCombat(), false)) {
 						logger::info("Failed to select a quest for Surrender");
-						RE::SendHUDMessage::ShowHUDMessage("$Achr_SurrenderNoQuest");
+						RE::DebugNotification("$Achr_SurrenderNoQuest");
 					}
 				}
 				break;

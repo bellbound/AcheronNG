@@ -113,7 +113,7 @@ namespace Papyrus
 			return "";
 		}
 
-		uint8_t weight = a_newweight > std::numeric_limits<uint8_t>::max() ? std::numeric_limits<uint8_t>::max() : static_cast<uint8_t>(a_newweight);
+		uint8_t weight = a_newweight > (std::numeric_limits<uint8_t>::max)() ? (std::numeric_limits<uint8_t>::max)() : static_cast<uint8_t>(a_newweight);
 		return Acheron::Resolution::SetEventWeight(a_event.c_str(), Type(a_type), weight);
 	}
 

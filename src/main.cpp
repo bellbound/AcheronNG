@@ -54,7 +54,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	}
 }
 
-extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
+SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 {
 	constexpr auto PLUGIN_NAME = "Acheron";
 	const auto InitLogger = []() -> bool {

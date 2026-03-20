@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+    "name": "acheronng",
+    "version-string": "1.7.0",
+    "description": "A death alternative framework for Skyrim SE/AE/VR",
+    "license": "Apache-2.0",
+    "dependencies": [
+        "commonlibsse-ng-fork",
+        "yaml-cpp",
+        "magic-enum",
+        "nlohmann-json",
+        "simpleini"
+    ]
+}

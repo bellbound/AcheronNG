@@ -7,6 +7,7 @@
 #pragma warning(pop)
 
 #include <atomic>
+#include <shared_mutex>
 #include <magic_enum.hpp>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
@@ -32,14 +33,6 @@ using json = nlohmann::json;
 #include "Serialization/Settings.h"
 
 static constexpr auto CONFIGPATH = [](std::string file) -> std::string { return "Data\\SKSE\\Acheron\\"s + file; };
-
-#ifdef SKYRIM_SUPPORT_AE
-#define RELID(SE, AE) REL::ID(AE)
-#define OFFSET(SE, AE) AE
-#else
-#define RELID(SE, AE) REL::ID(SE)
-#define OFFSET(SE, AE) SE
-#endif
 
 using Serialize = Serialization::Serialize;
 namespace stl
@@ -86,4 +79,3 @@ struct std::formatter<RE::BSFixedString> : std::formatter<const char*>
 	}
 };
 
-#define DLLEXPORT __declspec(dllexport)

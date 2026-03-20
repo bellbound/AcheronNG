@@ -70,7 +70,7 @@ namespace Acheron
 			if (Settings::bNotifyColored) {
 				base = std::format("<font color = '{}'>{}</font color>", Settings::rNotifyColor, base);
 			}
-			RE::SendHUDMessage::ShowHUDMessage(base.c_str());
+			RE::DebugNotification(base.c_str());
 		}
 
 		if (Settings::bFolWithPlDefeat && a_victim->IsPlayerRef()) {
@@ -164,43 +164,48 @@ namespace Acheron
 
 	void Processing::RemoveDamagingSpells(RE::Actor* subject)
 	{
-		auto effects = subject->GetActiveEffectList();
-		if (!effects)
-			return;
-
-		logger::info("Dispelling damaging spell effects from {:X}", subject->formID);
-		for (auto& eff : *effects) {
-			if (!eff || eff->flags.all(RE::ActiveEffect::Flag::kDispelled))
-				continue;
-			auto base = eff->GetBaseObject();
-			if (!base)
-				continue;
-
-			const auto damaging = [](const RE::EffectSetting::EffectSettingData& data) {
+		struct DispelVisitor : RE::MagicTarget::ForEachActiveEffectVisitor
+		{
+			static bool IsDamaging(const RE::EffectSetting::EffectSettingData& data)
+			{
 				if (data.archetype == RE::EffectArchetype::kPeakValueModifier)
 					return false;
 				if (data.primaryAV == RE::ActorValue::kHealth || data.secondaryAV == RE::ActorValue::kHealth)
 					return (data.flags.underlying() & 6) == 4;	// Detrimental and not Recover
 				return false;
-			};
+			}
 
-			if (damaging(base->data)) {
-				logger::info("Dispelling Spell {:X}", base->GetFormID());
-				eff->Dispel(true);
-			} else if (base->data.archetype == RE::EffectSetting::Archetype::kCloak) {
-				const auto associate = base->data.associatedForm;
-				if (associate == nullptr)
-					continue;
-				const auto magicitem = associate->As<RE::MagicItem>();
-				for (auto& e : magicitem->effects) {
-					if (e && e->baseEffect && damaging(e->baseEffect->data)) {
-						logger::info("Dispelling Spell {:X}", base->GetFormID());
-						eff->Dispel(true);
-						break;
+			RE::BSContainer::ForEachResult Accept(RE::ActiveEffect* eff) override
+			{
+				if (!eff || eff->flags.all(RE::ActiveEffect::Flag::kDispelled))
+					return RE::BSContainer::ForEachResult::kContinue;
+				auto base = eff->GetBaseObject();
+				if (!base)
+					return RE::BSContainer::ForEachResult::kContinue;
+
+				if (IsDamaging(base->data)) {
+					logger::info("Dispelling Spell {:X}", base->GetFormID());
+					eff->Dispel(true);
+				} else if (base->data.archetype == RE::EffectSetting::Archetype::kCloak) {
+					const auto associate = base->data.associatedForm;
+					if (associate) {
+						const auto magicitem = associate->As<RE::MagicItem>();
+						for (auto& e : magicitem->effects) {
+							if (e && e->baseEffect && IsDamaging(e->baseEffect->data)) {
+								logger::info("Dispelling Spell {:X}", base->GetFormID());
+								eff->Dispel(true);
+								break;
+							}
+						}
 					}
 				}
+				return RE::BSContainer::ForEachResult::kContinue;
 			}
-		}
+		};
+
+		logger::info("Dispelling damaging spell effects from {:X}", subject->formID);
+		DispelVisitor visitor;
+		subject->AsMagicTarget()->VisitEffects(visitor);
 	}
 
 	bool Processing::CreateResolution(RE::Actor* a_victim, const AggressorInfo& a_victoire, bool a_incombat)
@@ -220,7 +225,7 @@ namespace Acheron
 			if (actor->IsHostileToActor(a_victim)) {
 				return true;
 			}
-			const auto target = actor->currentCombatTarget.get();
+			const auto target = actor->GetActorRuntimeData().currentCombatTarget.get();
 			return target ? target.get() == a_victim || !target->IsHostileToActor(a_victim) || a_victim->IsPlayerRef() && target->IsPlayerTeammate() : false;
 		};
 

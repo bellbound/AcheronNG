@@ -1,0 +1,20 @@
+set(sources ${sources}
+	src/main.cpp
+	src/Acheron/Animation/Animation.cpp
+	src/Acheron/Conditions/ConditionParser.cpp
+	src/Acheron/Conditions/Conditional.cpp
+	src/Acheron/Defeat.cpp
+	src/Acheron/EventSink.cpp
+	src/Acheron/Hooks/Hooks.cpp
+	src/Acheron/Hooks/Processing.cpp
+	src/Acheron/Interface/CustomMenu.cpp
+	src/Acheron/Interface/HunterPride.cpp
+	src/Acheron/Misc.cpp
+	src/Acheron/Resolution.cpp
+	src/Acheron/Validation.cpp
+	src/Papyrus/Config.cpp
+	src/Papyrus/Functions.cpp
+	src/Serialization/EventManager.cpp
+	src/Serialization/Serialize.cpp
+	src/Serialization/Settings.cpp
+)

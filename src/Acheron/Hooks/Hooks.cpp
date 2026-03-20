@@ -13,7 +13,7 @@ namespace Acheron
 {
 	void Hooks::Install()
 	{
-		REL::Relocation<std::uintptr_t> phd{ RELID(37633, 38586), OFFSET(0x76, 0x7e) };
+		REL::Relocation<std::uintptr_t> phd{ RELOCATION_ID(37633, 38586), REL::Relocate(0x76, 0x7E) };
 		// MOV R13,RDX	; HitData* a_hitData
 		// MOV R15,RCX	; Actor* a_target
 		// ...
@@ -27,14 +27,14 @@ namespace Acheron
 				Xbyak::Label retPtr;
 				Xbyak::Label callPtr;
 
-				cmp(qword[rcx + OFFSET(0xf0, 0xf8)], 0);
+				cmp(qword[rcx + REL::Relocate(0xF0, 0xF8)], 0);
 				jz(retLbl);
 
 				call(ptr[rip + callPtr]);
 				test(al, al);
 
-				mov(rcx, OFFSET(r14, r15));
-				mov(rdx, OFFSET(r15, r13));
+				mov(rcx, REL::Relocate(r14, r15));
+				mov(rdx, REL::Relocate(r15, r13));
 				L(retLbl);
 				jmp(ptr[rip + retPtr]);
 
@@ -55,28 +55,28 @@ namespace Acheron
 		trampoline.write_branch<5>(phd.address(), patchDst);
 		REL::safe_fill(phd.address() + 5, 0x90, 3);
 		// ==================================================
-		REL::Relocation<std::uintptr_t> magichit{ RELID(33763, 34547), OFFSET(0x52F, 0x7B1) };
+		REL::Relocation<std::uintptr_t> magichit{ RELOCATION_ID(33763, 34547), REL::Relocate(0x52F, 0x7B1, 0x4B1) };
 		_MagicHit = trampoline.write_call<5>(magichit.address(), MagicHit);
 		// ==================================================
-		REL::Relocation<std::uintptr_t> mha{ RELID(33742, 34526), OFFSET(0x1E8, 0x20B) };
+		REL::Relocation<std::uintptr_t> mha{ RELOCATION_ID(33742, 34526), REL::Relocate(0x1E8, 0x20B) };
 		_DoesMagicHitApply = trampoline.write_call<5>(mha.address(), DoesMagicHitApply);
 		// ==================================================
-		REL::Relocation<std::uintptr_t> det{ RELID(41659, 42742), OFFSET(0x526, 0x67B) };
+		REL::Relocation<std::uintptr_t> det{ RELOCATION_ID(41659, 42742), REL::Relocate(0x526, 0x67B) };
 		_DoDetect = trampoline.write_call<5>(det.address(), DoDetect);
 		// ==================================================
 		REL::Relocation<std::uintptr_t> ragdoll_dmg{ RELOCATION_ID(36346, 37336), 0x35 };
 		_FallAndPhysicsDamage = trampoline.write_call<5>(ragdoll_dmg.address(), FallAndPhysicsDamage<false>);
 		// ==================================================
-		REL::Relocation<std::uintptr_t> movefinish{ RELOCATION_ID(36973, 37998), OFFSET(0xAE, 0xAB) };
+		REL::Relocation<std::uintptr_t> movefinish{ RELOCATION_ID(36973, 37998), REL::Relocate(0xAE, 0xAB) };
 		_FallAndPhysicsDamage = trampoline.write_call<5>(movefinish.address(), FallAndPhysicsDamage<true>);
 		// ==================================================
 		REL::Relocation<std::uintptr_t> plu{ RE::PlayerCharacter::VTABLE[0] };
-		_PlUpdate = plu.write_vfunc(0xAD, UpdatePlayer);
+		_PlUpdate = plu.write_vfunc(REL::Relocate(0xAD, 0xAD, 0xAF), UpdatePlayer);
 		// ==================================================
 		REL::Relocation<std::uintptr_t> char_vt{ RE::Character::VTABLE[0] };
 		_Load3D = char_vt.write_vfunc(0x6A, Load3D);
-		_UpdateCombat = char_vt.write_vfunc(0xE4, UpdateCombat);
-		_UpdateCharacter = char_vt.write_vfunc(0xAD, UpdateCharacter);
+		_UpdateCombat = char_vt.write_vfunc(REL::Relocate(0xE4, 0xE4, 0xE6), UpdateCombat);
+		_UpdateCharacter = char_vt.write_vfunc(REL::Relocate(0xAD, 0xAD, 0xAF), UpdateCharacter);
 
 		logger::info("Hooks installed");
 	}
@@ -85,9 +85,9 @@ namespace Acheron
 	{
 		_PlUpdate(a_player, a_delta);
 
-		static bool __combat = a_player->playerFlags.isInCombat;
-		if (__combat != a_player->playerFlags.isInCombat) {
-			__combat = a_player->playerFlags.isInCombat;
+		static bool __combat = a_player->GetPlayerRuntimeData().playerFlags.isInCombat;
+		if (__combat != a_player->GetPlayerRuntimeData().playerFlags.isInCombat) {
+			__combat = a_player->GetPlayerRuntimeData().playerFlags.isInCombat;
 			if (!__combat && Settings::iFollowerRescue == 1 && !Defeat::IsDamageImmune(a_player)) {
 				const auto defeated = Defeat::GetAllDefeated(false);
 				for (auto&& actor : defeated) {
@@ -132,12 +132,12 @@ namespace Acheron
 		if (const auto data = Defeat::GetVictimData(a_this.GetFormID())) {
 			if (data->mark_for_recovery && data->allow_recovery && Settings::bNPCRescueReload) {
 				// isLoading is true when loading from a prev location / is false when loading save
-				if (RE::PlayerCharacter::GetSingleton()->playerFlags.isLoading) {
+				if (RE::PlayerCharacter::GetSingleton()->GetPlayerRuntimeData().playerFlags.isLoading) {
 					Defeat::RescueActor(&a_this, true);
 					return ret;
 				}
 			}
-			if (auto process = a_this.currentProcess) {
+			if (auto process = a_this.GetActorRuntimeData().currentProcess) {
 				process->PlayIdle(&a_this, GameForms::BleedoutStart, &a_this);
 			} else {
 				a_this.NotifyAnimationGraph("BleedoutStart");
@@ -176,28 +176,39 @@ namespace Acheron
 
 	void Hooks::CalcDamageOverTime(RE::Actor* a_target)
 	{
-		const auto effects = a_target->GetActiveEffectList();
-		if (!effects)
-			return;
+		struct DamageVisitor : RE::MagicTarget::ForEachActiveEffectVisitor
+		{
+			RE::Actor* target;
+			float inc_damage = 0.0f;
+			bool hunterBreak = false;
 
-		float inc_damage = 0.0f;
-		for (const auto& effect : *effects) {
-			if (!effect || effect->flags.any(RE::ActiveEffect::Flag::kDispelled, RE::ActiveEffect::Flag::kInactive))
-				continue;
+			explicit DamageVisitor(RE::Actor* t) : target(t) {}
 
-			if (!a_target->IsPlayerRef()) {
-				const auto caster = effect->caster.get();
-				const auto player = RE::PlayerCharacter::GetSingleton();
-				if (caster && UsesHunterPride(caster.get()) && !IsHunter(player)) {
-					inc_damage = 0.0f;
-					break;
+			RE::BSContainer::ForEachResult Accept(RE::ActiveEffect* effect) override
+			{
+				if (!effect || effect->flags.any(RE::ActiveEffect::Flag::kDispelled, RE::ActiveEffect::Flag::kInactive))
+					return RE::BSContainer::ForEachResult::kContinue;
+
+				if (!target->IsPlayerRef()) {
+					const auto caster = effect->caster.get();
+					const auto player = RE::PlayerCharacter::GetSingleton();
+					if (caster && UsesHunterPride(caster.get()) && !IsHunter(player)) {
+						inc_damage = 0.0f;
+						hunterBreak = true;
+						return RE::BSContainer::ForEachResult::kStop;
+					}
 				}
+				if (const float change = GetExpectedHealthModification(effect); change != 0) {
+					inc_damage += change / 20;	// damage value is per second
+				}
+				return RE::BSContainer::ForEachResult::kContinue;
 			}
-			if (const float change = GetExpectedHealthModification(effect); change != 0) {
-				inc_damage += change / 20;	// damage value is per second
-			}
-		}
-		if (inc_damage < 0 && a_target->GetActorValue(RE::ActorValue::kHealth) <= fabs(inc_damage)) {
+		};
+
+		DamageVisitor visitor(a_target);
+		a_target->AsMagicTarget()->VisitEffects(visitor);
+
+		if (visitor.inc_damage < 0 && a_target->AsActorValueOwner()->GetActorValue(RE::ActorValue::kHealth) <= fabs(visitor.inc_damage)) {
 			auto aggressor = Processing::AggressorInfo(nullptr, a_target);
 			if (!Validation::ValidatePair(a_target, aggressor.actor))
 				return;
@@ -228,7 +239,7 @@ namespace Acheron
 		if (!Validation::ValidatePair(a_target, aggressor))
 			return HitResult::Allow;
 
-		const float hp = a_target->GetActorValue(RE::ActorValue::kHealth);
+		const float hp = a_target->AsActorValueOwner()->GetActorValue(RE::ActorValue::kHealth);
 		auto dmg = a_hitData.totalDamage + fabs(GetIncomingEffectDamage(a_target));
 		AdjustByDifficultyMult(dmg, a_target->IsPlayerRef());
 		bool negate;
@@ -279,7 +290,13 @@ namespace Acheron
 
 	void Hooks::MagicHit(uint64_t* unk1, RE::ActiveEffect& effect, uint64_t* unk3, uint64_t* unk4, uint64_t* unk5)
 	{
-		const auto target = effect.GetTargetActor();
+		const auto target = [&]() -> RE::Actor* {
+			if (auto mt = effect.target; mt && mt->MagicTargetIsActor()) {
+				auto refr = mt->GetTargetStatsObject();
+				return refr ? refr->As<RE::Actor>() : nullptr;
+			}
+			return nullptr;
+		}();
 		const auto& base = effect.effect ? effect.effect->baseEffect : nullptr;
 		if (!target || !base || target->IsCommandedActor() || !IsNPC(target))
 			return _MagicHit(unk1, effect, unk3, unk4, unk5);
@@ -312,7 +329,7 @@ namespace Acheron
 				if (!Validation::ValidatePair(target, caster.actor))
 					break;
 
-				const float health = target->GetActorValue(RE::ActorValue::kHealth);
+				const float health = target->AsActorValueOwner()->GetActorValue(RE::ActorValue::kHealth);
 				float dmg = base->data.secondaryAV == RE::ActorValue::kHealth ? effect.magnitude * base->data.secondAVWeight : effect.magnitude;
 				dmg += GetIncomingEffectDamage(target);	 // + GetTaperDamage(effect.magnitude, data->data);
 				AdjustByDifficultyMult(dmg, target->IsPlayerRef());
@@ -350,7 +367,8 @@ namespace Acheron
 
 	bool Hooks::DoesMagicHitApply(RE::MagicTarget* a_target, RE::MagicTarget::AddTargetData* a_data)
 	{
-		const auto target = a_target->MagicTargetIsActor() ? static_cast<RE::Actor*>(a_target) : nullptr;
+		const auto refr = a_target->GetTargetStatsObject();
+		const auto target = refr ? refr->As<RE::Actor>() : nullptr;
 		if (target && !target->IsDead() && Defeat::IsDamageImmune(target)) {
 			auto spell = a_data ? a_data->magicItem : nullptr;
 			if (!spell)
@@ -374,7 +392,7 @@ namespace Acheron
 			return dmg;
 		float adj_dmg = dmg;
 		AdjustByDifficultyMult(adj_dmg, a_this->IsPlayerRef(), MoveFinish);
-		const float hp = a_this->GetActorValue(RE::ActorValue::kHealth);
+		const float hp = a_this->AsActorValueOwner()->GetActorValue(RE::ActorValue::kHealth);
 		if (adj_dmg < hp)
 			return dmg;
 		if (!Validation::CanProcessDamage() || Defeat::IsDamageImmune(a_this))
@@ -383,7 +401,7 @@ namespace Acheron
 			return dmg;
 		if (a_this->IsPlayerRef() && RE::PlayerCharacter::GetSingleton()->IsGodMode())
 			return dmg;
-		if (a_this->HasEffectWithArchetype(RE::MagicTarget::Archetype::kEtherealize))
+		if (a_this->AsMagicTarget()->HasEffectWithArchetype(RE::MagicTarget::Archetype::kEtherealize))
 			return dmg;
 		auto aggressor = Processing::AggressorInfo(nullptr, a_this);
 		return Processing::RegisterDefeat(a_this, aggressor) ? 0.0f : dmg;
@@ -420,7 +438,7 @@ namespace Acheron
 		if (a_victim->IsPlayerTeammate())
 			return Random::draw<float>(0, 99.5f) < Settings::fLethalFollower;
 
-		if (Settings::bLethalEssential && (a_victim->boolFlags.all(Flag::kEssential) || !(a_aggressor && a_aggressor->IsPlayerRef()) && a_victim->boolFlags.all(Flag::kProtected)))
+		if (Settings::bLethalEssential && (a_victim->GetActorRuntimeData().boolFlags.all(Flag::kEssential) || !(a_aggressor && a_aggressor->IsPlayerRef()) && a_victim->GetActorRuntimeData().boolFlags.all(Flag::kProtected)))
 			return true;
 
 		return Random::draw<float>(0, 99.5f) < Settings::fLethalNPC;
@@ -448,24 +466,31 @@ namespace Acheron
 
 	float Hooks::GetIncomingEffectDamage(RE::Actor* subject)
 	{
-		const auto effects = subject->GetActiveEffectList();
-		if (!effects)
-			return 0.0f;
+		struct EffectDamageVisitor : RE::MagicTarget::ForEachActiveEffectVisitor
+		{
+			float ret = 0.0f;
 
-		float ret = 0.0f;
-		for (const auto& effect : *effects) {
-			if (!effect || effect->flags.any(RE::ActiveEffect::Flag::kDispelled, RE::ActiveEffect::Flag::kInactive))
-				continue;
-			else if (const float change = GetExpectedHealthModification(effect); change != 0.0f) {
-				ret += change;
+			RE::BSContainer::ForEachResult Accept(RE::ActiveEffect* effect) override
+			{
+				if (!effect || effect->flags.any(RE::ActiveEffect::Flag::kDispelled, RE::ActiveEffect::Flag::kInactive))
+					return RE::BSContainer::ForEachResult::kContinue;
+				if (const float change = GetExpectedHealthModification(effect); change != 0.0f) {
+					ret += change;
+				}
+				return RE::BSContainer::ForEachResult::kContinue;
 			}
-		}
+		};
+
+		EffectDamageVisitor visitor;
+		subject->AsMagicTarget()->VisitEffects(visitor);
 		// if ret > 0, subject is getting healed
-		return ret < 0 ? ret : 0;
+		return visitor.ret < 0 ? visitor.ret : 0;
 	}
 
 	float Hooks::GetExpectedHealthModification(RE::ActiveEffect* a_effect)
 	{
+		if (!a_effect->effect || reinterpret_cast<std::uintptr_t>(a_effect->effect) < 0x10000)
+			return 0.0f;
 		const auto base = a_effect->GetBaseObject();
 		if (!base || base->data.flags.any(RE::EffectSetting::EffectSettingData::Flag::kRecover))
 			return 0.0f;
@@ -552,7 +577,7 @@ namespace Acheron
 				if (Settings::bNotifyColored) {
 					base = std::format("<font color = '{}'>{}</font color>", Settings::rNotifyColor, base);
 				}
-				RE::SendHUDMessage::ShowHUDMessage(base.c_str());
+				RE::DebugNotification(base.c_str());
 			}
 			a_victim->RemoveItem(item, 1, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
 		} else if (Settings::bStripDrop) {

@@ -132,7 +132,16 @@ namespace Papyrus
 			a_vm->TraceStack("Cannot set Linked Ref. Source is none", a_stackID);
 			return;
 		}
-		object->extraList.SetLinkedRef(target, keyword);
+		auto* linked = object->extraList.GetByType<RE::ExtraLinkedRef>();
+		if (linked) {
+			for (auto& entry : linked->linkedRefs) {
+				if (entry.keyword == keyword) {
+					entry.refr = target;
+					return;
+				}
+			}
+			linked->linkedRefs.push_back({ keyword, target });
+		}
 	}
 
 	std::vector<RE::TESObjectARMO*> Actor::GetWornArmor(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, uint32_t ignoredmasks)
@@ -239,8 +248,8 @@ namespace Papyrus
 			return nullptr;
 		}
 		const float tmphp = a_actor->GetActorValueModifier(RE::ACTOR_VALUE_MODIFIER::kTemporary, RE::ActorValue::kHealth);
-		const float maxhp = a_actor->GetPermanentActorValue(RE::ActorValue::kHealth) + tmphp;
-		const float missinghp = maxhp - a_actor->GetActorValue(RE::ActorValue::kHealth);
+		const float maxhp = a_actor->AsActorValueOwner()->GetPermanentActorValue(RE::ActorValue::kHealth) + tmphp;
+		const float missinghp = maxhp - a_actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kHealth);
 		RE::AlchemyItem* ret = nullptr;
 		float closest = FLT_MAX;
 		const auto inventory = container->GetInventory();

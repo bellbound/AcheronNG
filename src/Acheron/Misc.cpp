@@ -40,8 +40,8 @@ namespace Acheron
 	float GetAVPercent(RE::Actor* a_actor, RE::ActorValue a_av)
 	{
 		float tempAV = a_actor->GetActorValueModifier(RE::ACTOR_VALUE_MODIFIER::kTemporary, a_av);
-		float totalAV = a_actor->GetPermanentActorValue(a_av) + tempAV;
-		float currentAV = a_actor->GetActorValue(a_av);
+		float totalAV = a_actor->AsActorValueOwner()->GetPermanentActorValue(a_av) + tempAV;
+		float currentAV = a_actor->AsActorValueOwner()->GetActorValue(a_av);
 		return totalAV > 0 ? currentAV / totalAV : currentAV;
 	}
 
@@ -53,7 +53,7 @@ namespace Acheron
 			if (!data.second->IsWorn() || !form->IsArmor() || !form->GetPlayable() || form->GetName()[0] == '\0') {
 				continue;
 			}
-			const auto item = data.second.get()->GetObject()->As<RE::TESObjectARMO>();
+			const auto item = form->As<RE::TESObjectARMO>();
 			if (a_ignoredmasks) {
 				const auto slots = static_cast<uint32_t>(item->GetSlotMask());
 				// sort out items which have no enabled slots (dont throw out if at least 1 slot matches)
@@ -79,7 +79,7 @@ namespace Acheron
 
 	bool IsHunter(RE::Actor* a_actor)
 	{
-		return a_actor->HasMagicEffect(GameForms::HunterPrideEffect);
+		return a_actor->AsMagicTarget()->HasMagicEffect(GameForms::HunterPrideEffect);
 	}
 
 	bool UsesHunterPride(const RE::Actor* a_actor)
@@ -107,7 +107,7 @@ namespace Acheron
 	bool PlayIdle(RE::AIProcess* proc, RE::Actor* attacker, RE::DEFAULT_OBJECT smth, RE::TESIdleForm* idle, bool a5, bool a6, RE::TESObjectREFR* target)
 	{
 		using func_t = decltype(&PlayIdle);
-		REL::Relocation<func_t> func{ RELID(38290, 38290) };	// TODO: AE RELID
+		REL::Relocation<func_t> func{ RELOCATION_ID(38290, 38290) };	// TODO: find correct AE RELID
 		return func(proc, attacker, smth, idle, a5, a6, target);
 	}
 
