@@ -1,4 +1,4 @@
-Scriptname AcheronHunterPride extends Quest Hidden 
+Scriptname AcheronHunterPride extends Quest Hidden
 
 Function OpenHunterPrideMenu(Actor akTarget) native
 
@@ -11,7 +11,49 @@ Message Property NoPotionMsg Auto
 
 Function OpenMenu(Actor akTarget)
   Acheron.RegisterForHunterPrideSelect(self)
-  OpenHunterPrideMenu(akTarget)
+
+  String[] optNames = Acheron.GetAvailableOptions(akTarget)
+  Int[] optIDs = Acheron.GetAvailableOptionIDs(akTarget)
+
+  If optNames.Length == 0
+    return
+  EndIf
+
+  UIListMenu listMenu = UIExtensions.GetMenu("UIListMenu") as UIListMenu
+  If listMenu == None
+    Debug.Notification("UIExtensions required for Hunter's Pride menu")
+    return
+  EndIf
+
+  listMenu.ResetMenu()
+  int headerEntry = listMenu.AddEntryItem("HUNTER'S PRIDE")
+  int[] entryIDs = new int[128]
+  int i = 0
+  int entryCount = 0
+  While i < optNames.Length
+    If optNames[i] != ""
+      entryIDs[entryCount] = i
+      listMenu.AddEntryItem(optNames[i])
+      entryCount += 1
+    EndIf
+    i += 1
+  EndWhile
+
+  listMenu.OpenMenu()
+  int selectedEntry = listMenu.GetResultInt()
+  String selectedText = listMenu.GetResultString()
+  Debug.Trace("HunterPride: selectedEntry=" + selectedEntry + " selectedText=" + selectedText + " entryCount=" + entryCount)
+
+  If selectedEntry < 0 || selectedEntry == headerEntry
+    return
+  EndIf
+
+  ; selectedEntry is 0-based entry index; header is 0, first option is 1
+  int optIndex = selectedEntry - 1
+  If optIndex >= 0 && optIndex < entryCount
+    Debug.Trace("HunterPride: dispatching optID=" + optIDs[entryIDs[optIndex]] + " for entry " + optIndex)
+    Acheron.NotifyOptionSelected(akTarget, optIDs[entryIDs[optIndex]])
+  EndIf
 EndFunction
 
 Event OnHunterPrideSelect(int aiOptionID, Actor akTarget)

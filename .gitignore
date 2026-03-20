@@ -6,3 +6,4 @@ build/
 dist/SKSE/Plugins/
 *.pex
 *.swf
+.idea

@@ -68,6 +68,12 @@ EndEvent
 ; asConditions: A json string of conditions, stating when the option is available/disabled
 ; -- Return:
 ; The associated integer representing this option, or -1 if the option could not be added
+; Get available Hunter Pride options for the given target (conditions pre-evaluated, only enabled options returned)
+String[] Function GetAvailableOptions(Actor akTarget) native global
+Int[] Function GetAvailableOptionIDs(Actor akTarget) native global
+; Notify that an option was selected, dispatches OnHunterPrideSelect event
+Function NotifyOptionSelected(Actor akTarget, int aiOptionID) native global
+
 int Function AddOption(String asOptionID, String asOptionName, String asIconSource, String asConditions = "") native global
 bool Function RemoveOption(String asOptionID) native global
 bool Function HasOption(String asOptionID) native global

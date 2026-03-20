@@ -1,63 +1,14 @@
 #include "Acheron/Interface/HunterPride.h"
 
-#include "Acheron/Interface/Interface.h"
+#include "Acheron/Misc.h"
 #include "Serialization/EventManager.h"
 #include "Util/FormLookup.h"
 
 namespace Acheron::Interface
 {
 	///
-	/// Menu
+	/// Option Management
 	///
-
-	HunterPride::HunterPride() :
-		RE::IMenu()
-	{
-		this->inputContext = Context::kMenuMode;
-		this->depthPriority = 3;
-		this->menuFlags.set(
-				Flag::kUsesMenuContext,
-				Flag::kCustomRendering,
-				Flag::kApplicationMenu);
-
-		auto dmanager = RE::BSInputDeviceManager::GetSingleton();
-		if (!dmanager->IsGamepadEnabled()) {
-			this->menuFlags.set(Flag::kUsesCursor);
-		}
-
-		auto scaleform = RE::BSScaleformManager::GetSingleton();
-		[[maybe_unused]] bool success = scaleform->LoadMovieEx(this, FILEPATH, [](RE::GFxMovieDef* a_def) -> void {
-			a_def->SetState(
-					RE::GFxState::StateType::kLog,
-					RE::make_gptr<FlashLogger<HunterPride>>().get());
-		});
-		assert(success);
-
-		auto view = this->uiMovie;
-		view->SetMouseCursorCount(1);
-
-		RE::GFxValue _main;
-		success = view->GetVariable(&_main, "_root.main");
-		assert(success && _main.IsObject());
-
-		RE::GFxFunctionHandler* fn = new OnItemSelected;
-		RE::GFxValue dst;
-		view->CreateFunction(&dst, fn);
-		success = _main.SetMember("OnItemSelected", dst);
-		assert(success);
-
-		RE::GFxFunctionHandler* fn2 = new CloseComplete;
-		RE::GFxValue dst2;
-		view->CreateFunction(&dst2, fn2);
-		success = _main.SetMember("CloseComplete", dst2);
-		assert(success);
-	}
-
-	void HunterPride::Register()
-	{
-		RE::UI::GetSingleton()->Register(NAME, Create);
-		logger::info("Registered Hunter Pride Menu");
-	}
 
 	int32_t HunterPride::AddOption(const RE::BSFixedString& a_option, const std::string& a_conditionstring, const std::string& a_name, const std::string& a_iconsrc)
 	{
@@ -100,62 +51,57 @@ namespace Acheron::Interface
 		return -1;
 	}
 
-	RE::UI_MESSAGE_RESULTS HunterPride::ProcessMessage(RE::UIMessage& a_message)
+	///
+	/// Data Provider (for Papyrus menu)
+	///
+
+	static const auto BuildDefaultOptions()
 	{
-		using Type = RE::UI_MESSAGE_TYPE;
-		using Result = RE::UI_MESSAGE_RESULTS;
+		constexpr auto vampire_cond = "{\"player\":{\"has\":{\"keywords\":[\"0xa82bb\"]}},\"target\":{\"not\":{\"keywords\":[\"0x13796\"]}, \"is\":[\"nonessential\"]}}";
+		return std::array{
+			HunterPride::Option{ HunterPride::DEFAULT_OPTIONS[0], "", "$Achr_Rescue", "" },
+			HunterPride::Option{ HunterPride::DEFAULT_OPTIONS[1], "", "$Achr_Plunder", "" },
+			HunterPride::Option{ HunterPride::DEFAULT_OPTIONS[2], "{\"target\":{\"is\":[\"nonessential\"]}}", "$Achr_Execute", "" },
+			HunterPride::Option{ HunterPride::DEFAULT_OPTIONS[3], vampire_cond, "$Achr_Vampire", "" }
+		};
+	}
 
-		switch (*a_message.type) {
-		case Type::kShow:
-			{
-				constexpr auto vampire_cond = "{\"player\":{\"has\":{\"keywords\":[\"0xa82bb\"]}},\"target\":{\"not\":{\"keywords\":[\"0x13796\"]}, \"is\":[\"nonessential\"]}}";
+	std::vector<std::string> HunterPride::GetAvailableOptionNames(RE::Actor* a_target)
+	{
+		_target = a_target;
+		static const auto defaults = BuildDefaultOptions();
 
-				std::vector<RE::GFxValue> args;
-				args.reserve(_options.size() + 4);
-				static const std::array defaults{
-					Option{ DEFAULT_OPTIONS[0], "", "$Achr_Rescue", "AcheronIcons.swf{Health}" },
-					Option{ DEFAULT_OPTIONS[1], "", "$Achr_Plunder", "AcheronIcons.swf{Bag}" },
-					Option{ DEFAULT_OPTIONS[2], "{\"target\":{\"is\":[\"nonessential\"]}}", "$Achr_Execute", "AcheronIcons.swf{Knife}" },
-					Option{ DEFAULT_OPTIONS[3], vampire_cond, "$Achr_Vampire", "AcheronIcons.swf{Fangs}" }
-				};
-				for (size_t i = 0; i < defaults.size() + _options.size(); i++) {
-					// IDEA: Hidden flag?
-					const Option& op = i < 4 ? defaults[i] : _options[i - 4];
-					bool enabled = false;
-					if (op._id == "rescue") {
-						enabled = HasBeneficialPotion(RE::PlayerCharacter::GetSingleton());
-					} else {
-						enabled = op.Check();
-					}
-					RE::GFxValue arg{};
-					this->uiMovie->CreateObject(&arg);
-					op.PopulateObjectData(arg);
-					arg.SetMember("enabled", { enabled });
-					args.push_back(arg);
-				}
-				this->uiMovie->InvokeNoReturn("_root.main.SetEntriesAndOpen", args.data(), static_cast<uint32_t>(args.size()));
+		std::vector<std::string> result;
+		for (size_t i = 0; i < defaults.size() + _options.size(); i++) {
+			const Option& op = i < 4 ? defaults[i] : _options[i - 4];
+			bool enabled = (op._id == "rescue") ? HasBeneficialPotion(RE::PlayerCharacter::GetSingleton()) : op.Check();
+			if (enabled) {
+				result.push_back(op._name);
 			}
-			return Result::kHandled;
-		default:
-			return RE::IMenu::ProcessMessage(a_message);
 		}
+		return result;
 	}
 
-	///
-	/// Callback
-	///
-
-	void HunterPride::OnItemSelected::Call(Params& a_args)
+	std::vector<int32_t> HunterPride::GetAvailableOptionIDs(RE::Actor* a_target)
 	{
-		const RE::BSFixedString option_str{ a_args.argCount > 0 ? a_args.args->GetString() : "" };
-		const auto option_id = option_str.empty() ? -1 : GetOptionID(option_str);
-		logger::info("Selected HunterPride option: {}", option_str);
-		Serialization::EventManager::GetSingleton()->_hunterprideselect.QueueEvent(option_id, _target);
+		_target = a_target;
+		static const auto defaults = BuildDefaultOptions();
+
+		std::vector<int32_t> result;
+		for (size_t i = 0; i < defaults.size() + _options.size(); i++) {
+			const Option& op = i < 4 ? defaults[i] : _options[i - 4];
+			bool enabled = (op._id == "rescue") ? HasBeneficialPotion(RE::PlayerCharacter::GetSingleton()) : op.Check();
+			if (enabled) {
+				result.push_back(static_cast<int32_t>(i));
+			}
+		}
+		return result;
 	}
 
-	void HunterPride::CloseComplete::Call(Params&)
+	void HunterPride::NotifyOptionSelected(int32_t a_optionID, RE::Actor* a_target)
 	{
-		Hide();
+		logger::info("HunterPride option selected: {}", a_optionID);
+		Serialization::EventManager::GetSingleton()->_hunterprideselect.QueueEvent(a_optionID, a_target);
 	}
 
 	///
@@ -294,13 +240,6 @@ namespace Acheron::Interface
 	const RE::BSFixedString& HunterPride::Option::GetID() const
 	{
 		return _id;
-	}
-
-	void HunterPride::Option::PopulateObjectData(RE::GFxValue& a_object) const
-	{
-		a_object.SetMember("entryid", { _id.data() });
-		a_object.SetMember("entrynm", { _name.data() });
-		a_object.SetMember("iconsrc", { _iconurl.data() });
 	}
 
 	///

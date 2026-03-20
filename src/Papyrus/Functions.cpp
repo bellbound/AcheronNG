@@ -86,7 +86,33 @@ namespace Papyrus
 			return;
 		}
 		Acheron::Interface::HunterPride::SetTarget(a_target);
-		Acheron::Interface::HunterPride::Show();
+	}
+
+	std::vector<std::string> Interface::GetAvailableOptions(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target)
+	{
+		if (!a_target) {
+			a_vm->TraceStack("Target is none", a_stackID);
+			return {};
+		}
+		return Acheron::Interface::HunterPride::GetAvailableOptionNames(a_target);
+	}
+
+	std::vector<int> Interface::GetAvailableOptionIDs(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target)
+	{
+		if (!a_target) {
+			a_vm->TraceStack("Target is none", a_stackID);
+			return {};
+		}
+		return Acheron::Interface::HunterPride::GetAvailableOptionIDs(a_target);
+	}
+
+	void Interface::NotifyOptionSelected(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target, int a_optionID)
+	{
+		if (!a_target) {
+			a_vm->TraceStack("Target is none", a_stackID);
+			return;
+		}
+		Acheron::Interface::HunterPride::NotifyOptionSelected(a_optionID, a_target);
 	}
 
 	int Interface::AddOption(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, std::string a_name, std::string a_url, std::string a_condition)

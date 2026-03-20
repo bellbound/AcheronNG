@@ -59,12 +59,19 @@ namespace Papyrus
 
 		void OpenHunterPrideMenu(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::Actor* a_target);
 
+		std::vector<std::string> GetAvailableOptions(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target);
+		std::vector<int> GetAvailableOptionIDs(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target);
+		void NotifyOptionSelected(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target, int a_optionID);
+
 		inline void Register(VM* a_vm)
 		{
 			REGISTERFUNC(AddOption, "Acheron");
 			REGISTERFUNC(RemoveOption, "Acheron");
 			REGISTERFUNC(HasOption, "Acheron");
 			REGISTERFUNC(GetOptionID, "Acheron");
+			REGISTERFUNC(GetAvailableOptions, "Acheron");
+			REGISTERFUNC(GetAvailableOptionIDs, "Acheron");
+			REGISTERFUNC(NotifyOptionSelected, "Acheron");
 
 			REGISTERFUNC(OpenHunterPrideMenu, "AcheronHunterPride");
 		}

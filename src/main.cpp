@@ -103,7 +103,6 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 		return false;
 	}
 
-	Acheron::Interface::HunterPride::Register();
 	Acheron::Interface::CustomMenu::Register();
 	// Acheron::Hooks::Install();
 
