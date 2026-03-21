@@ -19,10 +19,8 @@ namespace Acheron
 		// ...
 		// CMP qword ptr [RCX + 0xf8],0x0  ; if (a_target->currentProcess == 0)
 		// JZ LAB_1406b8d42                ; 	return;
-		struct ProcessHitData_Patch : Xbyak::CodeGenerator
-		{
-			ProcessHitData_Patch(size_t a_retAddr)
-			{
+		struct ProcessHitData_Patch : Xbyak::CodeGenerator {
+			ProcessHitData_Patch(size_t a_retAddr) {
 				Xbyak::Label retLbl;
 				Xbyak::Label retPtr;
 				Xbyak::Label callPtr;
@@ -376,7 +374,7 @@ namespace Acheron
 
 			for (auto& e : spell->effects) {
 				auto base = e ? e->baseEffect : nullptr;
-				if (base && base->data.flags.all(RE::EffectSetting::EffectSettingData::Flag::kDetrimental) && !Validation::AllowDetrimentalEffect(base)) {
+				if (base && base->data.flags.all(RE::EffectSetting::EffectSettingData::Flag::kDetrimental) && !Validation::AllowDetrimentalEffect(base)){
 					return false;
 				}
 			}
