@@ -78,7 +78,8 @@ namespace Acheron
 	bool ExclusionData::IsExcluded(RE::FormID a_targetID, RE::TESObjectREFR* a_conditionRef) const
 	{
 		if (formID == 0 && conditional) {
-			return conditional.ConditionsMet(a_conditionRef, a_conditionRef);
+			const auto player = RE::PlayerCharacter::GetSingleton();
+			return conditional.ConditionsMet(player, player);
 		}
 		bool formIdMatch = a_targetID != formID;
 		bool conditionMatch = (!conditional || conditional.ConditionsMet(a_conditionRef, a_conditionRef));
