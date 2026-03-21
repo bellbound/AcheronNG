@@ -12,4 +12,8 @@ namespace Acheron
 	bool IsNPC(const RE::Actor* a_actor);
 	bool IsDaedric(const RE::TESForm* a_form);
 
+	// ControlMap
+	void ToggleControls(RE::ControlMap* controlMap, RE::ControlMap::UEFlag a_flags, bool a_enable);
+	bool IsMovementControlsEnabled(RE::ControlMap* controlMap);
+
 }	 // namespace Acheron
