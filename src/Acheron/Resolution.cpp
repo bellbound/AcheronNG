@@ -3,8 +3,6 @@
 #include "Acheron/Animation/Animation.h"
 #include "Acheron/Defeat.h"
 #include "Acheron/Validation.h"
-#include "Util/FormLookup.h"
-#include "Util/StringUtil.h"
 
 namespace Acheron
 {
@@ -29,7 +27,7 @@ namespace Acheron
 			}
 		}
 		// Quest
-		quest = Util::FormFromString<RE::TESQuest*>(root["Quest"].as<std::string>());
+		quest = FormFromString<RE::TESQuest*>(root["Quest"].as<std::string>());
 		if (!quest) {
 			const auto err = std::format("Unable to find quest: {}", root["Quest"].as<std::string>());
 			throw std::exception(err.c_str());
@@ -195,7 +193,7 @@ namespace Acheron
 				dest = nullptr;
 				return;
 			}
-			const auto val = Util::FormFromString<T>(a_conditionobject);
+			const auto val = FormFromString<T>(a_conditionobject);
 			if (!val) {
 				const auto err = std::format("Object does not represent a valid form: {}", a_conditionobject);
 				throw std::exception(err.c_str());
@@ -206,7 +204,7 @@ namespace Acheron
 		switch (a_type) {
 		case ConditionType::Race:
 			{
-				Util::ToLower(a_conditionobject);
+				ToLower(a_conditionobject);
 				value.racetype = _strdup(a_conditionobject.c_str());
 			}
 			break;
@@ -252,7 +250,7 @@ namespace Acheron
 		case ConditionType::Race:
 			{
 				auto r{ Animation::GetRaceType(a_actor) };
-				Util::ToLower(r);
+				ToLower(r);
 				result = r == value.racetype;
 			}
 			break;

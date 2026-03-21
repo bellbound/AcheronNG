@@ -1,11 +1,10 @@
 #include "Papyrus/Functions.h"
 
 #include "Acheron/Animation/Animation.h"
-#include "Acheron/Defeat.h"
 #include "Acheron/Interface/CustomMenu.h"
-#include "Acheron/Interface/HunterPride.h"
 #include "Acheron/Resolution.h"
-#include "Util/StringUtil.h"
+#include "Acheron/Defeat.h"
+#include "Acheron/Interface/HunterPride.h"
 
 namespace Papyrus
 {
@@ -127,7 +126,7 @@ namespace Papyrus
 			a_vm->TraceStack("id may not be empty", a_stackID);
 			return false;
 		}
-		Util::ToLower(a_condition);
+		Acheron::ToLower(a_condition);
 		return Acheron::Interface::HunterPride::AddOption(a_id, a_condition, a_name, a_url);
 	}
 
@@ -205,11 +204,11 @@ namespace Papyrus
 	}
 
 	std::vector<RE::TESForm*> ObjectRef::GetItemsByKeywords(
-			VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-			RE::TESObjectREFR* a_container,
-			std::vector<RE::BGSKeyword*> a_kywds,
-			int32_t a_minvalue,
-			bool a_qstitms)
+		VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		RE::TESObjectREFR* a_container,
+		std::vector<RE::BGSKeyword*> a_kywds,
+		int32_t a_minvalue,
+		bool a_qstitms)
 	{
 		if (!a_container) {
 			a_vm->TraceStack("Cannot retrieve Items from a none reference", a_stackID);

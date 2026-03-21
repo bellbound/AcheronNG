@@ -3,7 +3,6 @@
 #include "Acheron/Interface/Interface.h"
 #include "Acheron/Misc.h"
 #include "Serialization/EventManager.h"
-#include "Util/FormLookup.h"
 
 namespace Acheron::Interface
 {
@@ -12,7 +11,7 @@ namespace Acheron::Interface
 	///
 
 	HunterPride::HunterPride() :
-		RE::IMenu()
+			RE::IMenu()
 	{
 		this->inputContext = Context::kMenuMode;
 		this->depthPriority = 3;
@@ -156,7 +155,7 @@ namespace Acheron::Interface
 
 	void HunterPride::OnItemSelected::Call(Params& a_args)
 	{
-		const RE::BSFixedString option_str{ a_args.argCount > 0 ? a_args.args->GetString() : "" };
+		const RE::BSFixedString option_str {a_args.argCount > 0 ? a_args.args->GetString() : ""};
 		const auto option_id = option_str.empty() ? -1 : GetOptionID(option_str);
 		logger::info("Selected HunterPride option: {}", option_str);
 		Serialization::EventManager::GetSingleton()->_hunterprideselect.QueueEvent(option_id, _target);
@@ -225,9 +224,9 @@ namespace Acheron::Interface
 	///
 
 	HunterPride::Option::Option(const RE::BSFixedString& a_option, const std::string& a_conditions, const std::string& a_name, const std::string& a_icon) :
-		_id(a_option),
-		_name(a_name),
-		_iconurl(a_icon)
+			_id(a_option),
+			_name(a_name),
+			_iconurl(a_icon)
 	{
 		if (a_conditions.empty())
 			return;
@@ -290,8 +289,8 @@ namespace Acheron::Interface
 	}
 
 	HunterPride::Option::CONDITION::CONDITION(ConditionType a_type, const std::string& a_objstring, bool a_reverse) :
-		reverse(a_reverse),
-		type(a_type)
+			reverse(a_reverse),
+			type(a_type)
 	{
 		const auto GetValue = [&]<class T>(T& a_value) {
 			if (a_objstring.find('|') == std::string::npos) {
@@ -300,7 +299,7 @@ namespace Acheron::Interface
 				using t = std::remove_pointer<T>::type;
 				a_value = RE::TESForm::LookupByID<t>(id);
 			} else {
-				a_value = Util::FormFromString<T>(a_objstring);
+				a_value = FormFromString<T>(a_objstring);
 			}
 			if (!a_value) {
 				const auto err = std::format("Object does not represent a valid form: {}", a_objstring);
@@ -486,7 +485,7 @@ namespace Acheron::Interface
 			}
 			_options.push_back(next);
 		}
-
+		
 		logger::info("Restored {} options from cosave", _options.size());
 	}
 

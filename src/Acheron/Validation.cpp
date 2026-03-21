@@ -1,8 +1,5 @@
 #include "Acheron/Validation.h"
 
-#include "Util/FormLookup.h"
-#include "Util/Misc.h"
-
 namespace Acheron
 {
 	void Validation::Initialize()
@@ -64,7 +61,7 @@ namespace Acheron
 
 				const auto items = a_node.as<std::vector<std::string>>();
 				for (auto& id : items) {
-					const auto it = Util::FormFromString(id);
+					const auto it = FormFromString<RE::FormID>(id);
 					if (!it) {
 						logger::info("Cannot exclude \'{}\'. Form does not exist or assoaicted file not loaded", id);
 						continue;
@@ -147,7 +144,7 @@ namespace Acheron
 		} else if (a_aggressor) {
 			if (!UsesHunterPride(a_aggressor) && (!Settings::bNPCDefeat || !a_victim->IsHostileToActor(a_aggressor)))
 				return false;
-			if (auto ref = a_victim->GetObjectReference(); ref && ref->As<RE::BGSKeywordForm>()->HasKeywordID(0xD205E))	 // ActorTypeGhost
+			if (auto ref = a_victim->GetObjectReference(); ref && ref->As<RE::BGSKeywordForm>()->HasKeywordID(0xD205E))	// ActorTypeGhost
 				return false;
 		} else if (!Settings::bNPCDefeat) {
 			return false;
@@ -192,7 +189,7 @@ namespace Acheron
 				return false;
 		}
 		static const auto MQ101 = RE::TESForm::LookupByID<RE::TESQuest>(0x0003372B);
-		if (MQ101->currentStage > 1 && MQ101->currentStage < 1000)	// Vanilla Intro
+		if (MQ101->currentStage > 1 && MQ101->currentStage < 1000)	 // Vanilla Intro
 			return false;
 
 		return true;
@@ -207,13 +204,13 @@ namespace Acheron
 		if (const auto furni = furnihandle.get()) {
 			static const auto DA02BoethiahPillar = RE::TESForm::LookupByID<RE::BGSKeyword>(0x000F3B64);
 			if (furni->HasKeyword(DA02BoethiahPillar))
-				return false;
+			return false;
 		}
 		if (a_actor->IsPlayerRef()) {
 			return true;
 		}
 
-		const auto base = Util::GetLeveledActorBase(a_actor);
+		const auto base = Acheron::GetLeveledActorBase(a_actor);
 		if (!base) {
 			logger::info("Invalid Actor {:X}: Missing Base", a_actor->GetFormID());
 			return false;
@@ -407,7 +404,7 @@ namespace Acheron
 		if (find(a_actor->GetFormID(), exclRef)) {
 			return false;
 		}
-		const auto base = Util::GetLeveledActorBase(a_actor);
+		const auto base = Acheron::GetLeveledActorBase(a_actor);
 		if (base && find(base->GetFormID(), exclNPC)) {
 			return false;
 		}

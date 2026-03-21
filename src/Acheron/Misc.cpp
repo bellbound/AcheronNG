@@ -77,6 +77,12 @@ namespace Acheron
 		return ret;
 	}
 
+	RE::TESActorBase* GetLeveledActorBase(RE::Actor* a_actor)
+	{
+		const auto base = a_actor->GetTemplateActorBase();
+		return base ? base : a_actor->GetActorBase();
+	}
+
 	bool IsHunter(RE::Actor* a_actor)
 	{
 		return a_actor->AsMagicTarget()->HasMagicEffect(GameForms::HunterPrideEffect);
@@ -163,4 +169,4 @@ namespace Acheron
 		return func(proc, attacker, smth, idle, a5, a6, target);
 	}
 
-}	 // namespace Acheron
+}  // namespace Acheron
