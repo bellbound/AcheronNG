@@ -7,16 +7,15 @@
 #pragma warning(pop)
 
 #include <atomic>
-#include <shared_mutex>
-#include <magic_enum.hpp>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 #include <yaml-cpp/yaml.h>
+#include <magic_enum.hpp>
 static_assert(magic_enum::is_magic_enum_supported);
 
 #pragma warning(push)
-#include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
+#include <spdlog/sinks/basic_file_sink.h>
 #pragma warning(pop)
 
 namespace logger = SKSE::log;
@@ -26,11 +25,10 @@ using json = nlohmann::json;
 
 #include "Acheron/Misc.h"
 #include "GameForms.h"
-#include "Util/Random.h"
-#include "Util/Singleton.h"
-
+#include "Random.h"
 #include "Serialization/Serialize.h"
 #include "Serialization/Settings.h"
+#include "Singleton.h"
 
 static constexpr auto CONFIGPATH = [](std::string file) -> std::string { return "Data\\SKSE\\Acheron\\"s + file; };
 
@@ -38,7 +36,7 @@ using Serialize = Serialization::Serialize;
 namespace stl
 {
 	using namespace SKSE::stl;
-
+	
 	inline bool read_string(SKSE::SerializationInterface* a_intfc, std::string& a_str)
 	{
 		std::size_t size = 0;

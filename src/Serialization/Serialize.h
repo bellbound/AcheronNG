@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Singleton.h"
+
 namespace Serialization
 {
 	class Serialize final :
@@ -12,7 +14,7 @@ namespace Serialization
 
 			_Processing = 'prc',
 			_Consequence = 'cnsq',
-
+			
 			_Defeated = 'dfts',
 			_Pacified = 'pfcy',
 
@@ -29,4 +31,4 @@ namespace Serialization
 	inline void SaveSet(SKSE::SerializationInterface* a_intfc, std::set<RE::FormID>& a_set);
 	inline std::string GetTypeName(uint32_t a_type);
 
-}	 // namespace Serialize
+}  // namespace Serialize
