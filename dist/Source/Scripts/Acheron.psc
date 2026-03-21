@@ -68,6 +68,8 @@ EndEvent
 ; asConditions: A json string of conditions, stating when the option is available/disabled
 ; -- Return:
 ; The associated integer representing this option, or -1 if the option could not be added
+; Returns true if the Flash-based Hunter Pride menu is available (AE only). VR/SE use UIExtensions instead.
+bool Function IsFlashMenuAvailable() native global
 ; Get available Hunter Pride options for the given target (conditions pre-evaluated, only enabled options returned)
 String[] Function GetAvailableOptions(Actor akTarget) native global
 Int[] Function GetAvailableOptionIDs(Actor akTarget) native global

@@ -58,6 +58,7 @@ namespace Papyrus
 		int GetOptionID(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
 
 		void OpenHunterPrideMenu(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::Actor* a_target);
+		bool IsFlashMenuAvailable(RE::StaticFunctionTag*);
 
 		std::vector<std::string> GetAvailableOptions(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target);
 		std::vector<int> GetAvailableOptionIDs(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target);
@@ -69,6 +70,7 @@ namespace Papyrus
 			REGISTERFUNC(RemoveOption, "Acheron");
 			REGISTERFUNC(HasOption, "Acheron");
 			REGISTERFUNC(GetOptionID, "Acheron");
+			REGISTERFUNC(IsFlashMenuAvailable, "Acheron");
 			REGISTERFUNC(GetAvailableOptions, "Acheron");
 			REGISTERFUNC(GetAvailableOptionIDs, "Acheron");
 			REGISTERFUNC(NotifyOptionSelected, "Acheron");

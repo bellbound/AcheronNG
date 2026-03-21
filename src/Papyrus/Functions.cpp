@@ -86,6 +86,12 @@ namespace Papyrus
 			return;
 		}
 		Acheron::Interface::HunterPride::SetTarget(a_target);
+		Acheron::Interface::HunterPride::Show();
+	}
+
+	bool Interface::IsFlashMenuAvailable(RE::StaticFunctionTag*)
+	{
+		return REL::Module::IsAE();
 	}
 
 	std::vector<std::string> Interface::GetAvailableOptions(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target)

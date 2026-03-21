@@ -2,19 +2,36 @@
 
 namespace Acheron::Interface
 {
-	class HunterPride
+	class HunterPride :
+			public RE::IMenu
 	{
+		using GRefCountBaseStatImpl::operator new;
+		using GRefCountBaseStatImpl::operator delete;
+
 	public:
 		static constexpr std::array DEFAULT_OPTIONS = { "rescue", "plunder", "execute", "vampire" };
+		static constexpr std::string_view NAME{ "AcheronHunterPride" };
+		static constexpr std::string_view FILEPATH{ "Acheron\\AcheronHunterPride" };
 
+		HunterPride();
+		~HunterPride() = default;
+		static void Register();
+		static RE::IMenu* Create() { return new HunterPride(); }
+
+	public:
 		static void SetTarget(RE::Actor* a_target) { _target = a_target;}
+
+		static void Show() { RE::UIMessageQueue::GetSingleton()->AddMessage(NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr); }
+		static void Hide() { RE::UIMessageQueue::GetSingleton()->AddMessage(NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr); }
+		static void ForceHide() { RE::UIMessageQueue::GetSingleton()->AddMessage(NAME, RE::UI_MESSAGE_TYPE::kForceHide, nullptr); }
+		static bool IsOpen() { return RE::UI::GetSingleton()->IsMenuOpen(NAME); }
 
 		static int32_t AddOption(const RE::BSFixedString& a_option, const std::string& a_conditionstring, const std::string& a_name, const std::string& a_iconsrc);
 		static bool RemoveOption(const RE::BSFixedString& a_option);
 		static bool HasOption(const RE::BSFixedString& a_option);
 		static int32_t GetOptionID(const RE::BSFixedString& a_option);
 
-		// Data provider for Papyrus menu
+		// Data provider for Papyrus menu (UIExtensions path)
 		static std::vector<std::string> GetAvailableOptionNames(RE::Actor* a_target);
 		static std::vector<int32_t> GetAvailableOptionIDs(RE::Actor* a_target);
 		static void NotifyOptionSelected(int32_t a_optionID, RE::Actor* a_target);
@@ -23,6 +40,21 @@ namespace Acheron::Interface
 		static void Save(SKSE::SerializationInterface* a_intfc);
 		static void Load(SKSE::SerializationInterface* a_intfc);
 		static void Revert(SKSE::SerializationInterface* a_intfc);
+
+	protected:
+		// IMenu
+		RE::UI_MESSAGE_RESULTS ProcessMessage(RE::UIMessage& a_message) override;
+
+		// Scaleform Callback
+		struct OnItemSelected : public RE::GFxFunctionHandler
+		{
+			void Call(Params& a_args) override;
+		};
+
+		struct CloseComplete : public RE::GFxFunctionHandler
+		{
+			void Call(Params& a_args) override;
+		};
 
 	public:
 		struct Option
@@ -73,13 +105,15 @@ namespace Acheron::Interface
 			Option() = default;
 			~Option() = default;
 
+			void PopulateObjectData(RE::GFxValue& a_object) const;
+
 			_NODISCARD bool Check() const;
 			_NODISCARD const RE::BSFixedString& GetID() const;
 
 		public:
 			RE::BSFixedString _id;
 			std::string _name;
-			std::string _iconurl;  // kept for cosave backward compatibility
+			std::string _iconurl;
 
 			std::vector<CONDITION> conditions[ConditionTarget::Total];
 		};
