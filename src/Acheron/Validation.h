@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Conditions/Conditional.h"
-
 namespace Acheron
 {
 	enum VTarget
@@ -13,22 +11,9 @@ namespace Acheron
 		Total
 	};
 
-	struct ExclusionData
-	{
-		ExclusionData(RE::FormID a_formID, const Conditions::Conditional& a_conditional) :
-		  formID(a_formID), conditional(a_conditional) {}
-		~ExclusionData() = default;
-
-		[[nodiscard]] bool IsExcluded(RE::FormID a_targetID, RE::TESObjectREFR* a_conditionRef) const;
-
-	  private:
-		RE::FormID formID;
-		Conditions::Conditional conditional;
-	};
-
 	class Validation
 	{
-	  public:
+	public:
 		static void Initialize();
 
 		/// @brief Check that the mod is considered enabled in current location
@@ -55,16 +40,20 @@ namespace Acheron
 		/// @return if teleporting the player is permitted
 		_NODISCARD static bool AllowTeleport();
 
-	  private:
-		static bool CheckExclusion(VTarget a_validation, RE::Actor* a_actor);  // Check actor for exclusion in arrays
+	private:
+		static bool ValidateActor(RE::Actor* a_actor);
 
-		static inline std::vector<ExclusionData> exclLocAll{};				   // Always disabled locations
-		static inline std::vector<ExclusionData> exclLocTp{};				   // Teleport only disabled locations
-		static inline std::vector<ExclusionData> exclMagicEffect{};			   // Excluded Magic Effects
-		static inline std::vector<ExclusionData> exclNPC[VTarget::Total];	   // Excluded Actor Bases
-		static inline std::vector<ExclusionData> exclRef[VTarget::Total];	   // Excluded object refs
-		static inline std::vector<ExclusionData> exclRace[VTarget::Total];	   // Excluded races
-		static inline std::vector<ExclusionData> exclFaction[VTarget::Total];  // Excluded factions
+		static bool CheckVictimID(RE::FormID a_formid);												 // Conditional exclusion of some unique actor ids
+		static bool CheckAssailantID(RE::FormID a_formid);										 // Conditional exclusion of some unique actor ids
+		static bool CheckExclusion(VTarget a_validation, RE::Actor* a_actor);	 // Check actor for exclusion in arrays
+
+		static inline std::vector<RE::FormID> exclLocAll{};									// Always disabled locations
+		static inline std::vector<RE::FormID> exclLocTp{};									// Teleport only disabled locations
+		static inline std::vector<RE::FormID> exclMagicEffect{};				// Excluded Magic Effects
+		static inline std::vector<RE::FormID> exclNPC[VTarget::Total];			// Excluded Actor Bases
+		static inline std::vector<RE::FormID> exclRef[VTarget::Total];			// Excluded object refs
+		static inline std::vector<RE::FormID> exclRace[VTarget::Total];			// Excluded races
+		static inline std::vector<RE::FormID> exclFaction[VTarget::Total];	// Excluded factions
 	};
 
-}  // namespace Acheron
+}	 // namespace Acheron
