@@ -113,17 +113,17 @@ namespace Acheron
 			}
 		}
 
-		if (static const auto DGIntimidateQuest = RE::TESForm::LookupByID<RE::TESQuest>(0x00047AE6); DGIntimidateQuest->currentStage == 10)	 // Brawl Quest
+		if (static const auto DGIntimidateQuest = RE::TESForm::LookupByID<RE::TESQuest>(0x00047AE6); DGIntimidateQuest && DGIntimidateQuest->currentStage == 10)	 // Brawl Quest
 			return false;
-		if (static const auto DLCVQ08 = RE::TESForm::LookupByID<RE::TESQuest>(0x02007C25); DLCVQ08->currentStage == 60)	 // Harkon
+		if (static const auto DLCVQ08 = RE::TESForm::LookupByID<RE::TESQuest>(0x02007C25); DLCVQ08 && DLCVQ08->currentStage == 60)	 // Harkon
 			return false;
-		if (static const auto DLC1VQ07 = RE::TESForm::LookupByID<RE::TESQuest>(0x02002853); DLC1VQ07->currentStage == 120)	// Gelebor
+		if (static const auto DLC1VQ07 = RE::TESForm::LookupByID<RE::TESQuest>(0x02002853); DLC1VQ07 && DLC1VQ07->currentStage == 120)	// Gelebor
 			return false;
-		if (static const auto DB10 = RE::TESForm::LookupByID<RE::TESQuest>(0x0003CEDA); DB10->currentStage < 200 && DB10->currentStage >= 10)	 // Sanctuary Raid
+		if (static const auto DB10 = RE::TESForm::LookupByID<RE::TESQuest>(0x0003CEDA); DB10 && DB10->currentStage < 200 && DB10->currentStage >= 10)	 // Sanctuary Raid
 			return false;
-		if (static const auto MG08 = RE::TESForm::LookupByID<RE::TESQuest>(0x0001F258); MG08->currentStage == 30)	 // Ancano
+		if (static const auto MG08 = RE::TESForm::LookupByID<RE::TESQuest>(0x0001F258); MG08 && MG08->currentStage == 30)	 // Ancano
 			return false;
-		if (static const auto DLC2MQ06 = RE::TESForm::LookupByID<RE::TESQuest>(0x040179D7); DLC2MQ06->currentStage >= 400 && DLC2MQ06->currentStage < 500)	// Miraak
+		if (static const auto DLC2MQ06 = RE::TESForm::LookupByID<RE::TESQuest>(0x040179D7); DLC2MQ06 && DLC2MQ06->currentStage >= 400 && DLC2MQ06->currentStage < 500)	// Miraak
 			return false;
 
 		return true;

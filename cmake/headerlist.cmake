@@ -1,11 +1,10 @@
 set(headers ${headers}
 	src/PCH.h
 	src/GameForms.h
+	src/Random.h
+	src/Script.h
+	src/Singleton.h
 	src/Acheron/Animation/Animation.h
-	src/Acheron/Conditions/ConditionParser.h
-	src/Acheron/Conditions/Conditional.h
-	src/Acheron/Conditions/EnumLookup.h
-	src/Acheron/Conditions/RefMap.h
 	src/Acheron/Defeat.h
 	src/Acheron/EventSink.h
 	src/Acheron/Hooks/Hooks.h
@@ -22,13 +21,4 @@ set(headers ${headers}
 	src/Serialization/EventManager.h
 	src/Serialization/Serialize.h
 	src/Serialization/Settings.h
-	src/Util/Combinatorics.h
-	src/Util/FormLookup.h
-	src/Util/Misc.h
-	src/Util/Premutation.h
-	src/Util/Random.h
-	src/Util/Script.h
-	src/Util/Singleton.h
-	src/Util/StringUtil.h
-	src/Util/World.h
 )

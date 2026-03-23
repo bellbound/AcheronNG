@@ -1,8 +1,6 @@
 set(sources ${sources}
 	src/main.cpp
 	src/Acheron/Animation/Animation.cpp
-	src/Acheron/Conditions/ConditionParser.cpp
-	src/Acheron/Conditions/Conditional.cpp
 	src/Acheron/Defeat.cpp
 	src/Acheron/EventSink.cpp
 	src/Acheron/Hooks/Hooks.cpp
