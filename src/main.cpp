@@ -38,9 +38,17 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	case SKSE::MessagingInterface::kNewGame:
 	case SKSE::MessagingInterface::kPostLoadGame:
 		{
+			if (!Acheron::GameForms::formsLoaded) {
+				logger::warn("Skipping post-load setup: game forms were not loaded successfully");
+				break;
+			}
 			const auto player = RE::PlayerCharacter::GetSingleton();
-			const auto base = player->GetActorBase();
-			bool success = base && base->AddPerk(Acheron::GameForms::InteractionPerk, 1);
+			const auto base = player ? player->GetActorBase() : nullptr;
+			if (!base) {
+				logger::error("Failed to get player actor base");
+				break;
+			}
+			bool success = Acheron::GameForms::InteractionPerk && base->AddPerk(Acheron::GameForms::InteractionPerk, 1);
 			if (success) {
 				logger::info("Added Interaction Perk to player");
 				for (auto& perkEntry : Acheron::GameForms::InteractionPerk->perkEntries) {

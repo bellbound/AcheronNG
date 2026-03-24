@@ -4,11 +4,6 @@ namespace Acheron
 {
 	struct GameForms
 	{
-#define LOOKUPFORM(form, formid)                                                                                           \
-	form = RE::TESDataHandler::GetSingleton()->LookupForm<std::remove_pointer<decltype(form)>::type>(formid, "Acheron.esm"); \
-	if (!form)                                                                                                               \
-		return false;
-
 		// Vanilla Game
 		static inline RE::TESFaction* GuardDiaFac;
 		static inline RE::TESGlobal* KillMove;
@@ -31,40 +26,83 @@ namespace Acheron
 
 		static inline RE::BGSPerk* InteractionPerk;
 
+		static inline bool formsLoaded{ false };
 
 		[[nodiscard]] static bool LoadForms()
 		{
+			bool ok = true;
+
+			const auto LogVanillaFailure = [&](const char* name, RE::FormID formid) {
+				auto* raw = RE::TESForm::LookupByID(formid);
+				if (raw) {
+					logger::error("Failed to load vanilla form {} [{:08X}]: exists as FormType {} but expected a different type",
+						name, formid, static_cast<uint32_t>(raw->GetFormType()));
+				} else {
+					logger::error("Failed to load vanilla form {} [{:08X}]: form does not exist", name, formid);
+				}
+				ok = false;
+			};
+
+			const auto LogAcheronFailure = [&](const char* name, RE::FormID formid) {
+				auto* handler = RE::TESDataHandler::GetSingleton();
+				auto* raw = handler ? handler->LookupForm(formid, "Acheron.esm") : nullptr;
+				if (raw) {
+					logger::error("Failed to load Acheron.esm form {} [{:03X}]: exists as FormType {} but expected a different type",
+						name, formid, static_cast<uint32_t>(raw->GetFormType()));
+				} else if (!handler) {
+					logger::error("Failed to load Acheron.esm form {} [{:03X}]: TESDataHandler unavailable", name, formid);
+				} else {
+					logger::error("Failed to load Acheron.esm form {} [{:03X}]: form does not exist. Is Acheron.esm loaded?",
+						name, formid);
+				}
+				ok = false;
+			};
+
+			// Vanilla Game forms
 			GuardDiaFac = RE::TESForm::LookupByID<RE::TESFaction>(0x0002BE3B);
-			if (!GuardDiaFac)
-				return false;
+			if (!GuardDiaFac) LogVanillaFailure("GuardDialogueFaction", 0x0002BE3B);
 
 			KillMove = RE::TESForm::LookupByID<RE::TESGlobal>(0x00100F19);
-			if (!KillMove)
-				return false;
+			if (!KillMove) LogVanillaFailure("KillMove", 0x00100F19);
 
 			BleedoutStart = RE::TESForm::LookupByID<RE::TESIdleForm>(0x00013ECC);
-			if (!BleedoutStart)
-				return false;
+			if (!BleedoutStart) LogVanillaFailure("BleedoutStart", 0x00013ECC);
+
 			BleedoutStop = RE::TESForm::LookupByID<RE::TESIdleForm>(0x00013ECE);
-			if (!BleedoutStop)
-				return false;
+			if (!BleedoutStop) LogVanillaFailure("BleedoutStop", 0x00013ECE);
 
-			LOOKUPFORM(Defeated, 0x801);
-			LOOKUPFORM(Pacified, 0x802);
+			// Acheron.esm forms
+			auto* handler = RE::TESDataHandler::GetSingleton();
 
-			LOOKUPFORM(DefaultCommon, 0x805);
-			LOOKUPFORM(DefaultGuard, 0x809);
+			Defeated = handler ? handler->LookupForm<RE::BGSKeyword>(0x801, "Acheron.esm") : nullptr;
+			if (!Defeated) LogAcheronFailure("Defeated", 0x801);
 
-			LOOKUPFORM(HunterPride, 0x807);
-			LOOKUPFORM(HunterPrideEffect, 0x806);
+			Pacified = handler ? handler->LookupForm<RE::BGSKeyword>(0x802, "Acheron.esm") : nullptr;
+			if (!Pacified) LogAcheronFailure("Pacified", 0x802);
 
-			LOOKUPFORM(BlankPackage, 0x804);
+			DefaultCommon = handler ? handler->LookupForm<RE::TESQuest>(0x805, "Acheron.esm") : nullptr;
+			if (!DefaultCommon) LogAcheronFailure("DefaultCommon", 0x805);
 
-			LOOKUPFORM(IgnoredFaction, 0x80C);
+			DefaultGuard = handler ? handler->LookupForm<RE::TESQuest>(0x809, "Acheron.esm") : nullptr;
+			if (!DefaultGuard) LogAcheronFailure("DefaultGuard", 0x809);
 
-			LOOKUPFORM(InteractionPerk, 0x803);
+			HunterPride = handler ? handler->LookupForm<RE::SpellItem>(0x807, "Acheron.esm") : nullptr;
+			if (!HunterPride) LogAcheronFailure("HunterPride", 0x807);
 
-			return true;
+			HunterPrideEffect = handler ? handler->LookupForm<RE::EffectSetting>(0x806, "Acheron.esm") : nullptr;
+			if (!HunterPrideEffect) LogAcheronFailure("HunterPrideEffect", 0x806);
+
+			BlankPackage = handler ? handler->LookupForm<RE::TESPackage>(0x804, "Acheron.esm") : nullptr;
+			if (!BlankPackage) LogAcheronFailure("BlankPackage", 0x804);
+
+			IgnoredFaction = handler ? handler->LookupForm<RE::TESFaction>(0x80C, "Acheron.esm") : nullptr;
+			if (!IgnoredFaction) LogAcheronFailure("IgnoredFaction", 0x80C);
+
+			InteractionPerk = handler ? handler->LookupForm<RE::BGSPerk>(0x803, "Acheron.esm") : nullptr;
+			if (!InteractionPerk) LogAcheronFailure("InteractionPerk", 0x803);
+
+			formsLoaded = ok;
+			return ok;
 		}
 	};
 
